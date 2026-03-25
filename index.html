@@ -181,19 +181,39 @@
         if(!chk) return alert('개인정보 동의가 필요합니다.');
 
         const btn = document.getElementById('send-btn');
-        btn.disabled = true; btn.innerText = "제출 중...";
+        btn.disabled = true; btn.innerText = "위치 확인 중...";
+
+        let lat = 0;
+        let lng = 0;
+
+        if (navigator.geolocation) {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                });
+                // 소수점 6자리까지 숫자로 추출
+                lat = position.coords.latitude.toFixed(6);
+                lng = position.coords.longitude.toFixed(6);
+            } catch (e) {
+                console.log("위치 정보 획득 실패");
+            }
+        }
+
+        btn.innerText = "제출 중...";
 
         const payload = {
-            name: name,
-            phone: phone,
+            name: document.getElementById('user-name').value,
+            phone: document.getElementById('user-phone').value,
             q1: answers.q1,
             q2: answers.q2,
             q3: answers.q3,
+            lat: lat, // 위도 분리
+            lng: lng, // 경도 분리
             time: new Date().toLocaleString()
         };
 
         // 💡 여기에 구글 시트 URL을 넣으세요!
-        const URL = "https://script.google.com/macros/s/AKfycbzf44UXyzVIcE__nObgZQtf1kDfXxEGv2fbFcyOb5Nnsnih9nKCat8-H_h4956MZpCaJA/exec";
+        const URL = "https://script.google.com/macros/s/AKfycbyCa1hJWNlROQzRnV_BgGBj9gPjw877S33cHz_u5P7tmuI8sCS1GjG0ON5H3X0JxR5vuA/exec";
 
         try {
             await fetch(URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
